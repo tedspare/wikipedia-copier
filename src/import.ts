@@ -6,27 +6,32 @@ export const URL =
 	'https://dumps.wikimedia.org/simplewiki/latest/simplewiki-latest-pages-articles.xml.bz2'
 
 export async function fetchWikiDump(): Promise<Buffer> {
-	// When ready to use real URL:
+	console.log('Connecting...')
+
 	const response = await fetch(URL)
 	if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`)
 
-	console.log('Fetched...')
+	console.log('Connected. Buffering...')
 
 	const compressedData = await response.arrayBuffer()
 
-	console.log('Buffered...')
+	console.log('Buffered.')
 
 	return Buffer.from(compressedData)
 }
 
 export async function decompress(compressedData: Buffer): Promise<string> {
-	console.log('Starting decompression...')
+	console.log('Spawning decompressor...')
+
+	const partialData = compressedData.subarray(0, Math.ceil(compressedData.length * 0.1))
 
 	const proc = Bun.spawn(['bunzip2'], {
-		stdin: compressedData,
+		stdin: partialData,
 		stdout: 'pipe',
 		stderr: 'pipe'
 	})
+
+	console.log('Decompressing...')
 
 	const [stdout, stderr] = await Promise.all([
 		new Response(proc.stdout).text(),
@@ -38,7 +43,8 @@ export async function decompress(compressedData: Buffer): Promise<string> {
 		throw new Error(`bunzip2 failed: ${stderr}`)
 	}
 
-	console.log('Decompression completed.')
+	console.log(`Decompressed ${stdout.length / 1024 / 1024} MB.`)
+
 	return stdout
 }
 
@@ -49,16 +55,13 @@ export async function importWiki() {
 	const start = performance.now()
 
 	try {
-		console.log('Fetching...')
 		const compressedData = await fetchWikiDump()
 
-		console.log('Decompressing...')
 		const xmlContent = await decompress(compressedData)
 
-		console.log('Parsing XML...')
 		const articles = await parseWikiDump({ xmlContent, maxPages: MAX_PAGES })
 
-		console.log('Saving to DB...')
+		console.log(`Saving ${articles.length} articles to DB...`)
 		for (const article of articles) await saveToDB(article)
 
 		const end = performance.now()

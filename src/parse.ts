@@ -8,6 +8,8 @@ export async function parseWikiDump({
 }: { xmlContent: string; maxPages: number }) {
 	const results: Article[] = []
 
+	console.log('Parsing...')
+
 	// Split pages by <page>...</page>
 	const pages = xmlContent.split(/<\/page>/)
 
@@ -59,6 +61,8 @@ export async function parseWikiDump({
 
 		results.push({ title, paragraph, titleEmbedding, paragraphEmbedding })
 	}
+
+	console.log(`Parsed ${results.length} articles.`)
 
 	return results
 }

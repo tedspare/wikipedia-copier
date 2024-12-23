@@ -1,5 +1,7 @@
 import { Database } from 'bun:sqlite'
 import type { Article } from '~/types'
+import * as sqliteVec from 'sqlite-vec'
+import { embed } from './embed'
 
 export async function saveToDB({ title, paragraph, titleEmbedding, paragraphEmbedding }: Article) {
 	// 1. Create or open an SQLite database
@@ -28,4 +30,30 @@ export async function saveToDB({ title, paragraph, titleEmbedding, paragraphEmbe
 			JSON.stringify(paragraphEmbedding)
 		]
 	)
+}
+
+export async function searchDB(query: string) {
+	const db = new Database('wiki.db')
+
+	Database.setCustomSQLite('/opt/homebrew/opt/sqlite3/lib/libsqlite3.dylib')
+
+	sqliteVec.load(db)
+
+	const { embedding: queryEmbedding } = await embed(query)
+
+	const rows = db
+		.prepare(
+			`
+				SELECT
+					rowid,
+					distance
+				FROM vec_items
+				WHERE embedding MATCH ?
+				ORDER BY distance
+				LIMIT 3
+			`
+		)
+		.all(new Float32Array(queryEmbedding))
+
+	return rows
 }
