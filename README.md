@@ -3,13 +3,13 @@
 To install dependencies:
 
 ```bash
-bun install
+bun i
 ```
 
 To download and index the wiki dump:
 
 ```bash
-bun run index.ts
+bun import
 ```
 
 To search the wiki dump:
