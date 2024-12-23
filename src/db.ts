@@ -4,7 +4,7 @@ import * as sqliteVec from 'sqlite-vec'
 import { embed } from './embed'
 
 const DB_PATH = 'wiki.db'
-const SQLITE_PATH = '/opt/homebrew/opt/sqlite3/lib/libsqlite3.dylib'
+const SQLITE_PATH = `${__dirname}/libsqlite3.dylib`
 const DIMENSIONS = 1024
 
 export async function saveToDB({ title, paragraph, titleEmbedding, paragraphEmbedding }: Article) {

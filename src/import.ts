@@ -4,6 +4,7 @@ import { saveToDB } from '~/db'
 const MAX_PAGES = 10
 export const URL =
 	'https://dumps.wikimedia.org/simplewiki/latest/simplewiki-latest-pages-articles.xml.bz2'
+// 'https://dumps.wikimedia.org/simplewiki/20241220/simplewiki-20241220-pages-articles-multistream-index.txt.bz2'
 
 export async function fetchWikiDump(): Promise<Buffer> {
 	console.log('Connecting...')
@@ -23,29 +24,29 @@ export async function fetchWikiDump(): Promise<Buffer> {
 export async function decompress(compressedData: Buffer): Promise<string> {
 	console.log('Spawning decompressor...')
 
-	const partialData = compressedData.subarray(0, Math.ceil(compressedData.length * 0.1))
+	try {
+		const proc = Bun.spawn(['bunzip2'], {
+			stdin: 'pipe',
+			stdout: 'pipe',
+			stderr: 'pipe'
+		})
 
-	const proc = Bun.spawn(['bunzip2'], {
-		stdin: partialData,
-		stdout: 'pipe',
-		stderr: 'pipe'
-	})
+		proc.stdin.write(compressedData)
+		proc.stdin.end()
 
-	console.log('Decompressing...')
+		console.log('Decompressing...')
 
-	const [stdout, stderr] = await Promise.all([
-		new Response(proc.stdout).text(),
-		new Response(proc.stderr).text()
-	])
+		const stdout = await new Response(proc.stdout).text()
 
-	if (proc.exitCode !== 0) {
-		console.error('Decompression failed:', stderr)
-		throw new Error(`bunzip2 failed: ${stderr}`)
+		console.log(`Decompressed ${~~(stdout.length / 1024 / 1024)} MB.`)
+
+		return stdout
+	} catch (error) {
+		console.error('Decompression failed:', error)
+		console.log(error)
+
+		throw error
 	}
-
-	console.log(`Decompressed ${stdout.length / 1024 / 1024} MB.`)
-
-	return stdout
 }
 
 /**
@@ -56,6 +57,8 @@ export async function importWiki() {
 
 	try {
 		const compressedData = await fetchWikiDump()
+
+		console.log(`Downloaded ${~~(compressedData.length / 1024 / 1024)} MB.`)
 
 		const xmlContent = await decompress(compressedData)
 

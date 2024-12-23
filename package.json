@@ -10,7 +10,8 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "search": "bun src/search.ts"
+    "search": "bun src/search.ts",
+    "import": "bun index.ts"
   },
   "dependencies": {
     "@rubriclab/config": "^0.0.14",

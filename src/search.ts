@@ -11,7 +11,15 @@ export async function search(query: string) {
 			method: 'POST',
 			body: JSON.stringify({
 				model: 'qwen2.5:3b',
-				prompt: `Please summarize the following wiki snippets into a single answer:\n\n${synthesized}`
+				prompt: `Given the following search results, please answer the user's question:
+        
+        Question: ${query}
+        
+        Snippets:
+        ${synthesized}
+        
+        Ignore any information that is not relevant to the question.
+        `.replace(/\t/g, ' ')
 			})
 		})
 
