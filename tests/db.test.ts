@@ -3,6 +3,10 @@ import { Database } from 'bun:sqlite'
 import { unlinkSync } from 'node:fs'
 
 const DB_PATH = `${__dirname}/test.db`
+const TEST_USER = {
+	name: 'John Doe',
+	email: 'john@example.com'
+}
 
 let db: Database
 
@@ -24,11 +28,6 @@ describe('SQLite Database Tests', () => {
 		const result = db.run(query)
 		expect(result.lastInsertRowid).toBe(0)
 	})
-
-	const TEST_USER = {
-		name: 'John Doe',
-		email: 'john@example.com'
-	}
 
 	test('can insert a row', () => {
 		const insert = db.prepare('INSERT INTO users (name, email) VALUES (?, ?)')
@@ -53,8 +52,6 @@ afterAll(() => {
 
 	// Optionally, delete the database file
 	try {
-		// Bun.write(DB_PATH, ""); // Clear the file
-		// Or use filesystem operations to delete it completely
 		unlinkSync(DB_PATH)
 	} catch (error) {
 		console.error('Error cleaning up database:', error)

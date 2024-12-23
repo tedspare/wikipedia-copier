@@ -7,14 +7,14 @@ export async function saveToDB({ title, paragraph, titleEmbedding, paragraphEmbe
 
 	// 2. Create a table to store articles with embeddings
 	db.run(`
-  CREATE TABLE IF NOT EXISTS articles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT,
-    paragraph TEXT,
-    title_embedding BLOB,
-    paragraph_embedding BLOB
-  )
-`)
+		CREATE TABLE IF NOT EXISTS articles (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			title TEXT,
+			paragraph TEXT,
+			title_embedding BLOB,
+			paragraph_embedding BLOB
+		)
+	`)
 
 	// Insert into SQLite
 	db.run(

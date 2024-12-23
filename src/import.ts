@@ -1,47 +1,70 @@
-/* importWiki.ts */
-import { spawnSync } from 'bun'
 import { parseWikiDump } from '~/parse'
 import { saveToDB } from '~/db'
 
 const MAX_PAGES = 10
+export const URL =
+	'https://dumps.wikimedia.org/simplewiki/latest/simplewiki-latest-pages-articles.xml.bz2'
 
-// ---- Main function: fetch a small dump and parse it ----
-export async function importWiki() {
-	// Example: Simple English Wikipedia’s “pages-articles” dump (compressed)
-	// You can pick a more up-to-date or smaller file if you want.
-	const url =
-		'https://dumps.wikimedia.org/simplewiki/latest/simplewiki-latest-pages-articles.xml.bz2'
-
-	console.log('Downloading dump (bz2)...')
-	const response = await fetch(url)
+export async function fetchWikiDump(): Promise<Buffer> {
+	// When ready to use real URL:
+	const response = await fetch(URL)
 	if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`)
 
-	// We’ll load entire compressed file into memory for brevity.
-	// (For large dumps, use a streaming decompression approach!)
-	const compressedData = Buffer.from(await response.arrayBuffer())
+	console.log('Fetched...')
 
-	console.log('Decompressing...')
-	// Bun provides built-in decompression for bzip2? Not yet.
-	// We'll cheat and call `spawnSync` bzip2 in your system, or you can use a library:
-	const decompress = spawnSync(['bunzip2'], {
+	const compressedData = await response.arrayBuffer()
+
+	console.log('Buffered...')
+
+	return Buffer.from(compressedData)
+}
+
+export async function decompress(compressedData: Buffer): Promise<string> {
+	console.log('Starting decompression...')
+
+	const proc = Bun.spawn(['bunzip2'], {
 		stdin: compressedData,
 		stdout: 'pipe',
 		stderr: 'pipe'
 	})
 
-	if (decompress.exitCode !== 0) {
-		console.error('bunzip2 failed:', decompress.stderr?.toString())
-		return
+	const [stdout, stderr] = await Promise.all([
+		new Response(proc.stdout).text(),
+		new Response(proc.stderr).text()
+	])
+
+	if (proc.exitCode !== 0) {
+		console.error('Decompression failed:', stderr)
+		throw new Error(`bunzip2 failed: ${stderr}`)
 	}
 
-	const xmlContent = decompress.stdout?.toString() || ''
+	console.log('Decompression completed.')
+	return stdout
+}
 
-	console.log('Parsing XML...')
-	const articles = await parseWikiDump({ xmlContent, maxPages: MAX_PAGES })
+/**
+ * THE MAIN ENTRYPOINT
+ */
+export async function importWiki() {
+	const start = performance.now()
 
-	for (const article of articles) {
-		await saveToDB(article)
+	try {
+		console.log('Fetching...')
+		const compressedData = await fetchWikiDump()
+
+		console.log('Decompressing...')
+		const xmlContent = await decompress(compressedData)
+
+		console.log('Parsing XML...')
+		const articles = await parseWikiDump({ xmlContent, maxPages: MAX_PAGES })
+
+		console.log('Saving to DB...')
+		for (const article of articles) await saveToDB(article)
+
+		const end = performance.now()
+		console.log(`Done in ${~~(end - start)}ms`)
+	} catch (error) {
+		console.error('Import failed:', error)
+		throw error
 	}
-
-	console.log('Done importing!')
 }
