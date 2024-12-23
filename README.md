@@ -1,4 +1,4 @@
-# wiki-dump
+# Wiki Dump
 
 To install dependencies:
 
@@ -6,8 +6,14 @@ To install dependencies:
 bun install
 ```
 
-To run:
+To download and index the wiki dump:
 
 ```bash
 bun run index.ts
+```
+
+To search the wiki dump:
+
+```bash
+bun search "what is art"
 ```

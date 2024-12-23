@@ -4,3 +4,10 @@ export type Article = {
 	titleEmbedding: number[]
 	paragraphEmbedding: number[]
 }
+
+export type SearchResult = {
+	rowid: number
+	distance: number
+	title: string
+	paragraph: string
+}

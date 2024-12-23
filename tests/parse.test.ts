@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'bun:test'
+import { saveToDB, searchDB } from '~/db'
 import { parseWikiDump } from '~/parse'
 
 describe('parseWikiDump', () => {
@@ -17,5 +18,12 @@ describe('parseWikiDump', () => {
 
 		expect(result[0]?.paragraph).toContain('is the fourth month')
 		expect(result[1]?.paragraph).toContain('is the eighth month')
+
+		for (const article of result) await saveToDB(article)
+
+		const searchResult = await searchDB('what is art')
+		console.log({ searchResult })
+
+		expect(searchResult[0]?.title).toBe('Art')
 	})
 })
