@@ -10,8 +10,6 @@ describe('parseWikiDump', () => {
 		// Call the parseWikiDump function
 		const result = await parseWikiDump({ xmlContent, maxPages: 10 })
 
-		console.log({ result })
-
 		// Check if the result contains expected titles and paragraphs
 		expect(result).toHaveLength(4)
 		expect(result[0]?.title).toContain('April')
