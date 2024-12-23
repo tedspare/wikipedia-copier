@@ -23,7 +23,7 @@ export async function search(query: string) {
 
 		const reader = stream.body?.getReader()
 		if (!reader) {
-			return ''
+			throw new Error('No reader')
 		}
 
 		while (true) {
@@ -34,14 +34,15 @@ export async function search(query: string) {
 			const lines = text.split('\n').filter(Boolean)
 			for (const line of lines) {
 				const data = JSON.parse(line)
-				console.log(data.response)
 				summary += data.response
+				console.log(summary)
 			}
 		}
 
 		return summary
 	} catch (error) {
 		console.error('Error summarizing:', error)
+		return ''
 	}
 }
 
