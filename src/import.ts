@@ -1,7 +1,7 @@
 import { parseWikiDump } from '~/parse'
 import { saveToDB } from '~/db'
 
-const MAX_PAGES = 10
+const MAX_PAGES = 1000
 export const URL =
 	'https://dumps.wikimedia.org/simplewiki/latest/simplewiki-latest-pages-articles.xml.bz2'
 // 'https://dumps.wikimedia.org/simplewiki/20241220/simplewiki-20241220-pages-articles-multistream-index.txt.bz2'

@@ -11,7 +11,8 @@
   },
   "scripts": {
     "search": "bun src/search.ts",
-    "import": "bun index.ts"
+    "import": "bun index.ts",
+    "count": "bun src/db.ts"
   },
   "dependencies": {
     "@rubriclab/config": "^0.0.14",

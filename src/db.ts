@@ -9,7 +9,7 @@ const DIMENSIONS = 1024
 
 let db: Database | null = null
 
-function getDatabaseInstance() {
+export function getDatabaseInstance() {
 	if (!db) {
 		try {
 			Database.setCustomSQLite(SQLITE_PATH)
@@ -66,4 +66,17 @@ export async function searchDB(query: string) {
 		.all(new Float32Array(queryEmbedding)) as SearchResult[]
 
 	return rows
+}
+
+export async function countRows() {
+	const db = getDatabaseInstance()
+
+	const count = db.prepare('SELECT count(*) FROM articles').get() as { 'count(*)': number }
+
+	return count['count(*)']
+}
+
+if (import.meta.main) {
+	const count = await countRows()
+	console.log(`\x1b[32m${count} rows\x1b[0m`)
 }
