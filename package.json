@@ -1,0 +1,15 @@
+{
+  "name": "wiki-dump",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@rubriclab/config": "^0.0.14",
+    "@xenova/transformers": "^2.17.2"
+  }
+}
