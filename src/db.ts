@@ -7,16 +7,23 @@ const DB_PATH = 'wiki.db'
 const SQLITE_PATH = `${__dirname}/libsqlite3.dylib`
 const DIMENSIONS = 1024
 
-export async function saveToDB({ title, paragraph, titleEmbedding, paragraphEmbedding }: Article) {
-	try {
-		Database.setCustomSQLite(SQLITE_PATH)
-	} catch (error) {
-		console.warn('Error setting custom SQLite:', error)
+let db: Database | null = null
+
+function getDatabaseInstance() {
+	if (!db) {
+		try {
+			Database.setCustomSQLite(SQLITE_PATH)
+		} catch (error) {
+			console.warn('Error setting custom SQLite:', error)
+		}
+		db = new Database(DB_PATH)
+		sqliteVec.load(db)
 	}
+	return db
+}
 
-	const db = new Database(DB_PATH)
-
-	sqliteVec.load(db)
+export async function saveToDB({ title, paragraph, titleEmbedding, paragraphEmbedding }: Article) {
+	const db = getDatabaseInstance()
 
 	db.run(`CREATE VIRTUAL TABLE IF NOT EXISTS articles 
 		USING vec0(
@@ -40,15 +47,7 @@ export async function saveToDB({ title, paragraph, titleEmbedding, paragraphEmbe
 }
 
 export async function searchDB(query: string) {
-	try {
-		Database.setCustomSQLite(SQLITE_PATH)
-	} catch (error) {
-		console.warn('Error setting custom SQLite:', error)
-	}
-
-	const db = new Database(DB_PATH)
-
-	sqliteVec.load(db)
+	const db = getDatabaseInstance()
 
 	const { embedding: queryEmbedding } = await embed(query)
 

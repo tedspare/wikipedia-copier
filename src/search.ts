@@ -3,7 +3,11 @@ import { searchDB } from '~/db'
 
 export async function search(query: string) {
 	try {
+		const start = performance.now()
 		const results = await searchDB(query)
+		const end = performance.now()
+
+		console.log(`\x1b[35m${results.length} results in ${~~(end - start)}ms\x1b[0m\n\n`)
 
 		const synthesized = results.map(r => `${r.title}:\n${r.paragraph}`).join('\n\n\n')
 
@@ -34,6 +38,8 @@ export async function search(query: string) {
 			throw new Error('No reader')
 		}
 
+		console.log(`\x1b[36mSources:\n\n${synthesized}\x1b[0m\n\n${'-'.repeat(100)}\n`)
+
 		while (true) {
 			const { done, value } = await reader.read()
 			if (done) break
@@ -43,7 +49,7 @@ export async function search(query: string) {
 			for (const line of lines) {
 				const data = JSON.parse(line)
 				summary += data.response
-				console.log(summary)
+				process.stdout.write(`\x1b[32m${data.response}\x1b[0m`)
 			}
 		}
 
@@ -64,7 +70,5 @@ if (require.main === module) {
 
 	const query = positionals.join(' ')
 
-	const summary = await search(query)
-
-	console.log({ summary })
+	await search(query)
 }
