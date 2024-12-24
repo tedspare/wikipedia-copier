@@ -6,6 +6,8 @@ import { embed } from './embed'
 const DB_PATH = 'wiki.db'
 const SQLITE_PATH = `${__dirname}/libsqlite3.dylib`
 const DIMENSIONS = 1024
+const MAX_DISTANCE = 15
+const MAX_RESULTS = 10
 
 let db: Database | null = null
 
@@ -61,11 +63,13 @@ export async function searchDB(query: string) {
 			FROM articles
 			WHERE paragraph_embedding MATCH ?
 			ORDER BY distance
-			LIMIT 3`
+			LIMIT ${MAX_RESULTS};`
 		)
 		.all(new Float32Array(queryEmbedding)) as SearchResult[]
 
-	return rows
+	console.log({ rows })
+
+	return rows.filter(row => row.distance <= MAX_DISTANCE)
 }
 
 export async function countRows() {
