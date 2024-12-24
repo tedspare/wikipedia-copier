@@ -67,8 +67,6 @@ export async function searchDB(query: string) {
 		)
 		.all(new Float32Array(queryEmbedding)) as SearchResult[]
 
-	console.log({ rows })
-
 	return rows.filter(row => row.distance <= MAX_DISTANCE)
 }
 
